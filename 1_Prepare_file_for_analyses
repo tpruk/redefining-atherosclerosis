@@ -1,0 +1,131 @@
+# Prepare txt file for downstream analyses
+
+# Load necessary libraries
+library(dplyr)
+library(readr)
+
+# Set working directory
+setwd("C:/Users/YourName/Documents")
+
+# Step 1: Import the text file obtained from the DAVID tool
+data_go1 <- read_delim("aorta_gobp.txt", delim = "\t")
+data_go2 <- read_delim("carotid_gobp.txt", delim = "\t")
+data_go3 <- read_delim("coronary_gobp.txt", delim = "\t")
+
+data_kg1 <- read_delim("aorta_kegg.txt", delim = "\t")
+data_kg2 <- read_delim("carotid_kegg.txt", delim = "\t")
+data_kg3 <- read_delim("coronary_kegg.txt", delim = "\t")
+
+data_rt1 <- read_delim("aorta_reactome.txt", delim = "\t")
+data_rt2 <- read_delim("carotid_reactome.txt", delim = "\t")
+data_rt3 <- read_delim("coronary_reactome.txt", delim = "\t")
+
+# Step 2: Keep only the columns named 'Term', 'Genes', and 'Benjamini'
+data_filtered_go1 <- data_go1 %>%
+  select(Term, Genes, Benjamini)
+data_filtered_go2 <- data_go2 %>%
+  select(Term, Genes, Benjamini)
+data_filtered_go3 <- data_go3 %>%
+  select(Term, Genes, Benjamini)
+
+data_filtered_kg1 <- data_kg1 %>%
+  select(Term, Genes, Benjamini)
+data_filtered_kg2 <- data_kg2 %>%
+  select(Term, Genes, Benjamini)
+data_filtered_kg3 <- data_kg3 %>%
+  select(Term, Genes, Benjamini)
+
+data_filtered_rt1 <- data_rt1 %>%
+  select(Term, Genes, Benjamini)
+data_filtered_rt2 <- data_rt2 %>%
+  select(Term, Genes, Benjamini)
+data_filtered_rt3 <- data_rt3 %>%
+  select(Term, Genes, Benjamini)
+
+# Step 3: In the 'Term' column, keep only characters before '~'
+data_filtered_go1 <- data_filtered_go1 %>%
+  mutate(Term = sub("~.*", "", Term))
+data_filtered_go2 <- data_filtered_go2 %>%
+  mutate(Term = sub("~.*", "", Term))
+data_filtered_go3 <- data_filtered_go3 %>%
+  mutate(Term = sub("~.*", "", Term))
+
+data_filtered_kg1 <- data_filtered_kg1 %>%
+  mutate(Term = sub(":.*", "", Term))
+data_filtered_kg2 <- data_filtered_kg2 %>%
+  mutate(Term = sub(":.*", "", Term))
+data_filtered_kg3 <- data_filtered_kg3 %>%
+  mutate(Term = sub(":.*", "", Term))
+
+data_filtered_rt1 <- data_filtered_rt1 %>%
+  mutate(Term = sub("~.*", "", Term))
+data_filtered_rt2 <- data_filtered_rt2 %>%
+  mutate(Term = sub("~.*", "", Term))
+data_filtered_rt3 <- data_filtered_rt3 %>%
+  mutate(Term = sub("~.*", "", Term))
+
+# Step 4: Select only rows with values in the 'Benjamini' column less than 0.05
+data_significant_go1 <- data_filtered_go1 %>%
+  filter(Benjamini < 0.05)
+data_significant_go2 <- data_filtered_go2 %>%
+  filter(Benjamini < 0.05)
+data_significant_go3 <- data_filtered_go3 %>%
+  filter(Benjamini < 0.05)
+
+data_significant_kg1 <- data_filtered_kg1 %>%
+  filter(Benjamini < 0.05)
+data_significant_kg2 <- data_filtered_kg2 %>%
+  filter(Benjamini < 0.05)
+data_significant_kg3 <- data_filtered_kg3 %>%
+  filter(Benjamini < 0.05)
+
+data_significant_rt1 <- data_filtered_rt1 %>%
+  filter(Benjamini < 0.05)
+data_significant_rt2 <- data_filtered_rt2 %>%
+  filter(Benjamini < 0.05)
+data_significant_rt3 <- data_filtered_rt3 %>%
+  filter(Benjamini < 0.05)
+
+# Step 5: Sort rows by 'Benjamini' column in ascending order
+data_sorted_go1 <- data_significant_go1[order(data_significant_go1$Benjamini), ]
+data_sorted_go2 <- data_significant_go2[order(data_significant_go2$Benjamini), ]
+data_sorted_go3 <- data_significant_go3[order(data_significant_go3$Benjamini), ]
+
+data_sorted_kg1 <- data_significant_kg1[order(data_significant_kg1$Benjamini), ]
+data_sorted_kg2 <- data_significant_kg2[order(data_significant_kg2$Benjamini), ]
+data_sorted_kg3 <- data_significant_kg3[order(data_significant_kg3$Benjamini), ]
+
+data_sorted_rt1 <- data_significant_rt1[order(data_significant_rt1$Benjamini), ]
+data_sorted_rt2 <- data_significant_rt2[order(data_significant_rt2$Benjamini), ]
+data_sorted_rt3 <- data_significant_rt3[order(data_significant_rt3$Benjamini), ]
+
+# Step 6: Select only columns 'Term' and 'Genes'
+final_data_go1 <- data_sorted_go1[, c("Term", "Genes")]
+final_data_go2 <- data_sorted_go2[, c("Term", "Genes")]
+final_data_go3 <- data_sorted_go3[, c("Term", "Genes")]
+
+final_data_kg1 <- data_sorted_kg1[, c("Term", "Genes")]
+final_data_kg2 <- data_sorted_kg2[, c("Term", "Genes")]
+final_data_kg3 <- data_sorted_kg3[, c("Term", "Genes")]
+
+final_data_rt1 <- data_sorted_rt1[, c("Term", "Genes")]
+final_data_rt2 <- data_sorted_rt2[, c("Term", "Genes")]
+final_data_rt3 <- data_sorted_rt3[, c("Term", "Genes")]
+
+# Step 7.1: Export these two left columns without column identifiers for semantic similarity analysis
+write.table(final_data_go1, "aorta_gobp_for_ss.txt", sep = "\t", col.names = FALSE, row.names = FALSE, quote = FALSE)
+write.table(final_data_go2, "carotid_gobp_for_ss.txt", sep = "\t", col.names = FALSE, row.names = FALSE, quote = FALSE)
+write.table(final_data_go3, "coronary_gobp_for_ss.txt", sep = "\t", col.names = FALSE, row.names = FALSE, quote = FALSE)
+
+# Step 7.2: Export these two left columns with column identifiers for compare cluster
+write.table(final_data_go1, "aorta_gobp_for_cc.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(final_data_go2, "carotid_gobp_for_cc.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(final_data_go3, "coronary_gobp_for_cc.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+
+write.table(final_data_kg1, "aorta_kegg_for_cc.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(final_data_kg2, "carotid_kegg_for_cc.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(final_data_kg3, "coronary_kegg_for_cc.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+
+write.table(final_data_rt1, "aorta_reactome_for_cc.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(final_data_rt2, "carotid_reactome_for_cc.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+write.table(final_data_rt3, "coronary_reactome_for_cc.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
