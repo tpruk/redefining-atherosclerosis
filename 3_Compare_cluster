@@ -1,0 +1,73 @@
+# Comparative analysis
+
+# Load required libraries
+library(stringr)
+library(clusterProfiler)
+library(org.Hs.eg.db)
+
+# Set working directory
+setwd("C:/Users/YourName/Documents")
+
+# Step 1: Define a function to read genes based on the top 10 GO terms
+read_gene_list <- function(file_path) {
+  data <- read.table(file_path, header = TRUE, sep = "\t", 
+                     stringsAsFactors = FALSE, nrows = 10)
+  genes <- unique(unlist(strsplit(data$Genes, ", ")))
+  return(genes)
+}
+
+# Step 2: Read gene lists from GO BP, KEGG, and Reactome datasets
+## Uncomment the relevant lines based on the dataset you are using
+
+Aorta <- read_gene_list("aorta_gobp_for_cc.txt")
+Carotid <- read_gene_list("carotid_gobp_for_cc.txt")
+Coronary <- read_gene_list("coronary_gobp_for_cc.txt")
+
+#Aorta <- read_gene_list("aorta_kegg_for_cc.txt")
+#Carotid <- read_gene_list("carotid_kegg_for_cc.txt")
+#Coronary <- read_gene_list("coronary_kegg_for_cc.txt")
+
+#Aorta <- read_gene_list("aorta_reactome_for_cc.txt")
+#Carotid <- read_gene_list("carotid_reactome_for_cc.txt")
+#Coronary <- read_gene_list("coronary_reactome_for_cc.txt")
+
+# Step 3: Create a list of gene lists for comparison
+compare <- list(Aorta = lapply(Aorta, as.character),
+                Carotid = lapply(Carotid, as.character),
+                Coronary = lapply(Coronary, as.character))
+  
+#print(compare)
+
+# Step 4: Translate gene symbols to Entrez IDs
+corrisp <- lapply(compare,function(x) bitr(x, fromType="SYMBOL", 
+                                           toType="ENTREZID", OrgDb="org.Hs.eg.db"))
+corrisp <- lapply(corrisp,"[","ENTREZID")
+corrisp <- lapply(corrisp, unlist)
+
+#print(corrisp)
+
+# Step 5: Perform biological theme comparison using enrichGO, enrichKEGG, or enrichPathway
+## Uncomment the relevant lines based on the dataset you are using
+
+ccluster <- compareCluster(geneCluster = corrisp, ont = "BP", fun = "enrichGO", OrgDb = org.Hs.eg.db, pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05)
+pdf(file = "compareCluster_gobp_top10.pdf", width = 7)
+
+#ccluster <- compareCluster(geneCluster = corrisp, fun = "enrichKEGG", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05)
+#pdf(file = "compareCluster_kegg_top10.pdf", width = 7)
+
+#ccluster <- compareCluster(geneCluster = corrisp, fun = "enrichPathway", pvalueCutoff = 0.05, pAdjustMethod = "BH", qvalueCutoff = 0.05)
+#pdf(file = "compareCluster_reactome_top10.pdf", width = 7)
+
+# Step 6: Plot the enrichment results
+options(enrichplot.colours = c("red","blue"))
+dotplot(ccluster, font.size = 14)
+dev.off()
+  
+# Step 7: Save the enrichment results to CSV files (for use in unique pathway identification)
+## Uncomment the relevant lines based on the dataset you are using
+
+write.csv(ccluster, file = "compareCluster_gobp.csv", row.names = FALSE)
+
+#write.csv(ccluster, file = "compareCluster_kegg.csv", row.names = FALSE) 
+
+#write.csv(ccluster, file = "compareCluster_reactome.csv", row.names = FALSE)
