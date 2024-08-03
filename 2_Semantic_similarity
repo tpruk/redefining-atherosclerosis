@@ -86,8 +86,8 @@ plot_semantic_similarity <- function(similarity_matrix, title, filename) {
 }
 
 # Step 6: Plot and save the semantic similarity matrix for GO terms
-plot_semantic_similarity(go_sem_sim_mat, "Semantic Similarity Matrix (GO Terms)", "go_semantic_similarity_top10_ecm.pdf")
+plot_semantic_similarity(go_sem_sim_mat, "Semantic Similarity Matrix (GO Terms)", "go_semantic_similarity_top10.pdf")
 
 # Step 7: Plot and save the semantic similarity matrix for genes
-# plot_semantic_similarity(gene_sem_sim_mat, "Semantic Similarity Matrix (Genes)", "gene_semantic_similarity_top10_ecm.pdf")
+# plot_semantic_similarity(gene_sem_sim_mat, "Semantic Similarity Matrix (Genes)", "gene_semantic_similarity_top10.pdf")
 
