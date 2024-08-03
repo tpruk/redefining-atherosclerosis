@@ -67,7 +67,5 @@ dev.off()
 ## Uncomment the relevant lines based on the dataset you are using
 
 write.csv(ccluster, file = "compareCluster_gobp.csv", row.names = FALSE)
-
 #write.csv(ccluster, file = "compareCluster_kegg.csv", row.names = FALSE) 
-
 #write.csv(ccluster, file = "compareCluster_reactome.csv", row.names = FALSE)
