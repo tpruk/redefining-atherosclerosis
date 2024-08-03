@@ -1,0 +1,93 @@
+# Semantic similarity analysis 
+
+# Load required libraries
+library(GOSemSim)
+library(readtext)
+library(stringr)
+
+# Set working directory
+setwd("C:/Users/YourName/Documents")
+
+# Step 1: List all .txt files in the specified directory
+path <- c("C:/Users/YourName/Documents")
+txt_files <- list.files(path, pattern = "\\.txt$", full.names = TRUE)
+files <- readtext(txt_files)
+files_split <- strsplit(files[,1],"_")
+id <- unlist(lapply(files_split, function(x) gsub("\\.txt$", "", paste0(x[1]))))
+
+# Step 2: Extract GO terms and corresponding genes from each file
+go_term <- lapply(files[,2], function(x) str_extract_all(x,"GO:.{7}"))
+go_term_sub <- lapply(go_term, function(x) x[[1]][1:10])
+names(go_term_sub) <- id
+gene_grasp <- function(text_gene){
+  aux_1 <- str_replace_all(text_gene,"GO:.{7}|\t|", "")
+  aux_2 <- strsplit(aux_1, "\n")
+  aux_3 <- strsplit(aux_2[[1]][1:10],", ")
+  aux_4 <- unique(unlist(aux_3))
+  return(aux_4)
+}
+gene_term_sub <- lapply(files[,2],gene_grasp)
+names(gene_term_sub) <- id
+
+# Step 3: Load Gene Ontology data for semantic similarity calculations
+hsGO <- godata('org.Hs.eg.db', ont="BP")
+hsGO2 <- godata('org.Hs.eg.db', keytype = "SYMBOL", ont="BP", computeIC=FALSE)
+
+# Step 4: Create semantic similarity matrices for GO terms and genes
+len <- length(id)
+go_sem_sim_mat = gene_sem_sim_mat <- matrix(data = 0, nrow = len, ncol = len)
+rownames(go_sem_sim_mat) = rownames(gene_sem_sim_mat) <- id
+colnames(go_sem_sim_mat) = colnames(gene_sem_sim_mat) <- id
+
+for(k in 1:len){
+  for(kk in 1:len){
+    go_sem_sim_mat[k,kk] <- mgoSim(go_term_sub[[k]], go_term_sub[[kk]], 
+                                   semData=hsGO, measure="Wang", combine="BMA")
+    gene_sem_sim_mat[k,kk] <- clusterSim(gene_term_sub[[k]], gene_term_sub[[kk]], 
+                                         semData=hsGO2, measure="Wang", combine="BMA")
+    cat("k =",k,"kk =",kk,"per =", round(((k-1)*len+kk)/len^2, digits = 3)*100, "%\n")
+  }
+}
+
+# Step 5: Define function to plot the semantic similarity matrix
+library(ggplot2)
+library(reshape2)  # for melt function
+
+plot_semantic_similarity <- function(similarity_matrix, title, filename) {
+  # Convert similarity matrix to long format for ggplot
+  df <- melt(similarity_matrix)
+  
+  # Define the desired order of row and column labels
+  desired_order <- c("Aorta", "Carotid", "Coronary")
+  
+  # Reorder the factor levels of Var2 (columns) to reverse their order
+  df$Var2 <- factor(df$Var2, levels = rev(desired_order))
+  
+  # Plot heatmap using ggplot2
+  p <- ggplot(df, aes(Var1, Var2, fill = value)) +
+    geom_tile(color = "black", linewidth = 0.3) + # Add black lines around squares
+    scale_fill_gradient(low = "white", high = "red", limits = c(0.4, 1),
+                        breaks = seq(1, 0.4, by = -0.2), labels = seq(1, 0.4, by = -0.2)) +
+    geom_text(aes(label = round(value, digits = 2)), color = "black", size = 5) +
+    labs(title = title,
+         fill = "Correlation",
+         x = NULL, y = NULL) +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1, color = "black", size = 17),
+          axis.text.y = element_text(color = "black", size = 15),
+          axis.title = element_blank(),
+          legend.text = element_text(color = "black", size = 10),
+          legend.title = element_text(color = "black", size = 10),
+          plot.title = element_text(size = 16, face = "bold")) +
+    coord_fixed()  # Preserve aspect ratio
+  
+  # Export plot as PDF
+  ggsave(filename = filename, plot = p, device = "pdf")
+}
+
+# Step 6: Plot and save the semantic similarity matrix for GO terms
+plot_semantic_similarity(go_sem_sim_mat, "Semantic Similarity Matrix (GO Terms)", "go_semantic_similarity_top10_ecm.pdf")
+
+# Step 7: Plot and save the semantic similarity matrix for genes
+# plot_semantic_similarity(gene_sem_sim_mat, "Semantic Similarity Matrix (Genes)", "gene_semantic_similarity_top10_ecm.pdf")
+
