@@ -1,0 +1,54 @@
+# Unique pathways per tissue
+
+# Load necessary libraries
+library(forcats)
+library(ggplot2)
+library(gplots)
+library(readr)
+
+# Set working directory
+setwd("C:/Users/YourName/Documents")
+
+# Step 1: Read the input CSV file containing pathway data
+## Uncomment the relevant lines based on the dataset you are using
+
+data <- read_csv("diff_vessels_gobp_fordotplot.csv")
+#data <- read_csv("diff_vessels_kegg_fordotplot.csv")
+#data <- read_csv("diff_vessels_reactome_fordotplot.csv")
+
+# Step 2: Define the order of terms for the Y-axis based on their significance
+## Customize terms and their order as desired
+data$Term<-factor(data$Description, levels=c("terms1",
+                                             "terms2",
+                                             "terms3",
+                                             "terms4"))
+
+# Step 3: Define the order of clusters for the X-axis
+data$Cluster<-factor(data$Cluster,levels=c("Aorta","Carotid","Coronary"))
+
+# Step 4: Export the plot as a PDF file
+## Uncomment the relevant lines based on the dataset you are using
+
+pdf(file = "diff_vessels_gobp_dotplot.pdf", width = 50 / 2.54, height = 40 / 2.54) # Convert cm to inches
+#pdf(file = "diff_vessels_gobp_dotplot.pdf", width = 50 / 2.54, height = 40 / 2.54) # Convert cm to inches
+#pdf(file = "diff_vessels_gobp_dotplot.pdf", width = 50 / 2.54, height = 40 / 2.54) # Convert cm to inches
+
+par(cex = 1.0)
+
+# Step 5: Create and adjust the dot plot
+ggplot(data, aes(x=Cluster, y=Term)) +
+  geom_point(aes(size = qvalue, color = FoldEnrichment, stroke=0)) +
+  scale_size("q-values", range=c(15,5), breaks=c(1E-8, 1E-6, 1E-4)) +
+  scale_colour_gradient2(limits=c(0, 250), breaks=c(0, 100, 200), mid="blue", high="red") +
+  theme_bw(base_size = 40) +
+  theme(
+    axis.text.x = element_text(colour="black"),
+    axis.text.y = element_text(colour="black"),
+    legend.title = element_text(size = 30),  # Font size of the legend titles
+    legend.text = element_text(size = 25)    # Font size of the legend text
+  ) +
+  theme(
+    legend.position = "right"  # Position legend if needed
+  )
+
+dev.off()
